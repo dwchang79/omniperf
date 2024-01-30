@@ -25,7 +25,7 @@
 import os
 import config
 from omniperf_soc.soc_base import OmniSoC_Base
-from utils.utils import demarcate, error
+from utils.utils import demarcate, console_error
 
 SOC_PARAM = {
     "numSE": 4,
@@ -72,7 +72,7 @@ class gfx906_soc (OmniSoC_Base):
         """
         super().profiling_setup()
         if self.get_args().roof_only:
-            error("%s does not support roofline analysis" % self.get_soc_name())
+            console_error("%s does not support roofline analysis" % self.get_soc_name())
         # Perfmon filtering
         self.perfmon_filter()
 

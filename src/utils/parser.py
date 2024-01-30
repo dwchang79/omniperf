@@ -30,9 +30,8 @@ import os
 import pandas as pd
 import numpy as np
 from utils import schema
-from utils.utils import error, get_hbm_stack_num
+from utils.utils import get_hbm_stack_num, console_warning, console_error
 from pathlib import Path
-import logging
 
 # ------------------------------------------------------------------------------
 # Internal global definitions
@@ -423,8 +422,7 @@ def calc_builtin_var(var, sys_info):
             )
         return totalL2Banks
     else:
-        print("Don't support", var)
-        sys.exit(1)
+        console_error("Built-in var \" %s \" is not supported" % var)
 
 def build_dfs(archConfigs, filter_metrics, sys_info):
     """
@@ -684,8 +682,8 @@ def eval_metric(dfs, dfs_type, sys_info, soc_spec, raw_pmc_df, debug):
         and not roof_only_run
         and (raw_pmc_df["pmc_perf"]["GRBM_GUI_ACTIVE"] == 0).any()
     ):
-        print("WARNING: Dectected GRBM_GUI_ACTIVE == 0\nHaulting execution.")
-        sys.exit(1)
+        console_warning("Dectected GRBM_GUI_ACTIVE == 0")
+        console_error("Hauting execution for warning above.")
 
     # NB:
     #  Following with Omniperf 0.2.0, we are using HW spec from sys_info instead.
@@ -857,7 +855,7 @@ def apply_filters(workload, dir, is_gui, debug):
             kernels_df = pd.read_csv(os.path.join(dir, "pmc_kernel_top.csv"))
             for kernel_id in workload.filter_kernel_ids:
                 if kernel_id > len(kernels_df["Kernel_Name"]):
-                    error(
+                    console_error(
                         "{} is an invalid kernel id. Please enter an id between 0-{}".format(
                             kernel_id, len(kernels_df["Kernel_Name"])
                         )
@@ -921,7 +919,7 @@ def load_kernel_top(workload, dir):
             if file.exists():
                 tmp[id] = pd.read_csv(file)
             else:
-                logging.info("Warning: Issue loading top kernels. Check pmc_kernel_top.csv")
+                console_warning("Issue loading top kernels. Check pmc_kernel_top.csv")
         elif "from_csv_columnwise" in df.columns:
             # NB:
             #   Another way might be doing transpose in tty like metric_table.
@@ -934,7 +932,7 @@ def load_kernel_top(workload, dir):
                 #   so tty could detect them and show them correctly in comparison.
                 tmp[id].columns = ["Info"]
             else:
-                logging.info("Warning: Issue loading top kernels. Check pmc_kernel_top.csv")
+                console_warning("Issue loading top kernels. Check pmc_kernel_top.csv")
     workload.dfs.update(tmp)
 
 

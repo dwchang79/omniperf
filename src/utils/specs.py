@@ -30,12 +30,11 @@ import sys
 import socket
 import subprocess
 import importlib
-import logging
 
 from dataclasses import dataclass
 from pathlib import Path as path
 from textwrap import dedent
-from utils.utils import error
+from utils.utils import console_error, console_log, console_warning
 
 @dataclass
 class MachineSpecs:
@@ -189,7 +188,7 @@ def gpuinfo():
     try:
         soc_module = importlib.import_module('omniperf_soc.soc_'+gpu_arch)
     except ModuleNotFoundError as e:
-        error("Arch %s marked as supported, but couldn't find class implementation %s." % (gpu_arch, e))
+        console_error("Arch %s marked as supported, but couldn't find class implementation %s." % (gpu_arch, e))
     
     # load arch specific info
     try:
@@ -198,7 +197,7 @@ def gpuinfo():
         gpu_info['numSQC'] = str(soc_module.SOC_PARAM['numSQC'])
         gpu_info['LDSBanks'] = str(soc_module.SOC_PARAM['LDSBanks'])
     except KeyError as e:
-        error("Incomplete class definition for %s. Expected a field for %s in SOC_PARAM." % (gpu_arch, e))\
+        console_error("Incomplete class definition for %s. Expected a field for %s in SOC_PARAM." % (gpu_arch, e))\
     
     # specify gpu name for gfx942 hardware
     if gpu_name == "MI300":
@@ -217,7 +216,7 @@ def gpuinfo():
     # verify all fields are filled
     for key, value in gpu_info.items():
         if value is None:
-            logging.info("Warning: %s is missing from gpu_info dictionary." % key)
+            console_warning("%s is missing from gpu_info dictionary." % key)
 
     return gpu_info
 
@@ -225,8 +224,7 @@ def gpuinfo():
 def run(cmd):
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if cmd[0] == "rocm-smi" and p.returncode == 8:
-        print("ERROR: No GPU detected. Unable to load rocm-smi")
-        sys.exit(1)
+        console_error("No GPU detected. Unable to load rocm-smi")
     return p.stdout.decode("utf-8")
 
 
@@ -266,21 +264,16 @@ def get_machine_specs(devicenum):
         # check if ROCM_VER is supplied externally
         ROCM_VER_USER = os.getenv("ROCM_VER")
         if ROCM_VER_USER is not None:
-            print(
-                "Overriding missing ROCm version detection with ROCM_VER = %s"
-                % ROCM_VER_USER
+            console_log(
+                "profiling",
+                "Overriding missing ROCm version detection with ROCM_VER = %s" % ROCM_VER_USER
             )
             rocm_ver = ROCM_VER_USER
         else:
             _rocm_path = os.getenv("ROCM_PATH", "/opt/rocm")
-            print("Error: Unable to detect a complete local ROCm installation.")
-            print(
-                "\nThe expected %s/.info/ versioning directory is missing. Please"
-                % _rocm_path
-            )
-            print("ensure you have valid ROCm installation.")
-            sys.exit(1)
-
+            console_warning("Unable to detect a complete local ROCm installation.")
+            console_warning("The expected %s/.info/ versioning directory is missing." % _rocm_path)
+            console_error("Ensure you have valid ROCm installation.")
     gpu_info = gpuinfo()
 
     rocm_smi = run(["rocm-smi"])
@@ -360,4 +353,4 @@ def get_machine_specs(devicenum):
 
 
 if __name__ == "__main__":
-    print(get_machine_specs(0))
+    console_log(get_machine_specs(0))

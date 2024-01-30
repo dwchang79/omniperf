@@ -23,12 +23,11 @@
 ##############################################################################el
 
 from abc import ABC, abstractmethod
-import logging
 import os
 import sys
 import time
 from dash import dcc
-from utils.utils import mibench, gen_sysinfo, demarcate, error
+from utils.utils import mibench, gen_sysinfo, demarcate, console_error, console_log, console_debug
 from dash import html
 import plotly.graph_objects as go
 from utils.roofline_calc import calc_ai, constuct_roof
@@ -66,7 +65,7 @@ class Roofline:
 
     def validate_parameters(self):
         if self.__run_parameters['include_kernel_names'] and (not self.__run_parameters['is_standalone']):
-            error("--roof-only is required for --kernel-names")
+            console_error("--roof-only is required for --kernel-names")
 
     def roof_setup(self):
         # set default workload path if not specified
@@ -84,13 +83,16 @@ class Roofline:
         """Generate a set of empirical roofline plots given a directory containing required profiling and benchmarking data
         """
         # Create arithmetic intensity data that will populate the roofline model
-        logging.debug("[roofline] Path: %s" % self.__run_parameters['path_to_dir'])
+        console_debug(
+            "roofline",
+            "Path: %s" % self.__run_parameters['path_to_dir']
+        )
         self.__ai_data = calc_ai(self.__run_parameters['sort_type'], ret_df)
         
-        logging.debug("[roofline] AI at each mem level:")
+        msg="AI at each mem level:"
         for i in self.__ai_data:
-            logging.debug("%s -> %s" % (i, self.__ai_data[i]))
-        logging.debug("\n")
+            msg += ("\n\t%s -> %s" % (i, self.__ai_data[i]))
+        console_debug(msg)
 
         # Generate a roofline figure for each data type
         fp32_fig = self.generate_plot(
@@ -143,7 +145,10 @@ class Roofline:
             )
             if self.__run_parameters['include_kernel_names']:
                 self.__figure.write_image(self.__run_parameters['path_to_dir'] + "/kernelName_legend.pdf")
-            logging.info("[roofline] Empirical Roofline PDFs saved!")
+            console_log(
+                "roofline",
+                "Empirical Roofline PDFs saved!"
+            )
         else:
             return html.Section(
                 id="roofline",
@@ -188,7 +193,10 @@ class Roofline:
             roofline_parameters=self.__run_parameters,
             dtype=dtype,
         )
-        logging.debug("[roofline] Ceiling data:\n%s" % self.__ceiling_data)
+        console_debug(
+            "roofline",
+            "Ceiling data:\n%s" % self.__ceiling_data
+        )
 
         #######################
         # Plot ceilings
@@ -318,8 +326,10 @@ class Roofline:
         app_path = os.path.join(self.__run_parameters['path_to_dir'], "pmc_perf.csv")
         roofline_exists = os.path.isfile(app_path)
         if not roofline_exists:
-            logging.error("[roofline] Error: {} does not exist".format(app_path))
-            sys.exit(1)
+            console_error(
+                "roofline",
+                "{} does not exist".format(app_path)
+            )
         t_df = OrderedDict()
         t_df["pmc_perf"] = pd.read_csv(app_path)
         self.empirical_roofline(
@@ -331,10 +341,16 @@ class Roofline:
     def pre_processing(self):
         if self.__args.roof_only:
             # check for sysinfo
-            logging.info("[roofline] Checking for sysinfo.csv in " + str(self.__args.path))
+            console_log(
+                "roofline",
+                "Checking for sysinfo.csv in " + str(self.__args.path)
+            )
             sysinfo_path = os.path.join(self.__args.path, "sysinfo.csv")
             if not os.path.isfile(sysinfo_path):
-                logging.info("[roofline] sysinfo.csv not found. Generating...")
+                console_log(
+                    "roofline", 
+                    "sysinfo.csv not found. Generating..."
+                )
                 gen_sysinfo(
                     workload_name=self.__args.name, 
                     workload_dir=self.__workload_dir, 
@@ -348,22 +364,37 @@ class Roofline:
     def profile(self):
         if self.__args.roof_only:
             # check for roofline benchmark
-            logging.info("[roofline] Checking for roofline.csv in " + str(self.__args.path))
+            console_log(
+                "roofline", 
+                "Checking for roofline.csv in " + str(self.__args.path)
+            )
             roof_path = os.path.join(self.__args.path, "roofline.csv")
             if not os.path.isfile(roof_path):
                 mibench(self.__args)
 
             # check for profiling data
-            logging.info("[roofline] Checking for pmc_perf.csv in " + str(self.__args.path))
+            console_log(
+                "roofline", 
+                "Checking for pmc_perf.csv in " + str(self.__args.path)
+            )
             app_path = os.path.join(self.__args.path, "pmc_perf.csv")
             if not os.path.isfile(app_path):
-                logging.info("[roofline] pmc_perf.csv not found. Generating...")
+                console_log(
+                    "roofline",
+                    "pmc_perf.csv not found. Generating..."
+                )
                 if not self.__args.remaining:
-                    error("An <app_cmd> is required to run.\nomniperf profile -n test -- <app_cmd>")
+                    console_error(
+                        "profiling"
+                        "An <app_cmd> is required to run.\nomniperf profile -n test -- <app_cmd>"
+                    )
                 #TODO: Add an equivelent of characterize_app() to run profiling directly out of this module
                 
         elif self.__args.no_roof:
-            logging.info("[roofline] Skipping roofline.")
+            console_log(
+                "roofline", 
+                "Skipping roofline."
+            )
         else:
             mibench(self.__args)
 

@@ -23,13 +23,13 @@
 ##############################################################################el
 
 import argparse
-import logging
 import sys
 import os
 from pathlib import Path
 import shutil
 from utils.specs import get_machine_specs
-from utils.utils import demarcate, trace_logger, get_version, get_version_display, detect_rocprof, error, get_submodules
+from utils.utils import demarcate, get_version, get_version_display, detect_rocprof, get_submodules, console_log, console_error
+from utils.logger import setup_logging
 from argparser import omniarg_parser
 import config
 import pandas as pd
@@ -58,7 +58,7 @@ class Omniperf:
         self.__options = {}
         self.__supported_archs = SUPPORTED_ARCHS
 
-        self.setup_logging()
+        setup_logging()
         self.set_version()
         self.parse_args()
 
@@ -69,7 +69,7 @@ class Omniperf:
         elif self.__mode == "analyze":
             self.detect_analyze()
         
-        logging.info("Execution mode = %s" % self.__mode)
+        console_log("Execution mode = %s" % self.__mode)
    
     def print_graphic(self):
         """Log program name as ascii art to terminal.
@@ -82,32 +82,7 @@ class Omniperf:
  \___/|_| |_| |_|_| |_|_| .__/ \___|_|  |_|  
                         |_|                  
 '''
-        logging.info(ascii_art)
-    
-    def setup_logging(self):
-        # register a trace level logger
-        logging.TRACE = logging.DEBUG - 5
-        logging.addLevelName(logging.TRACE, "TRACE")
-        setattr(logging, "TRACE", logging.TRACE)
-        setattr(logging, "trace", trace_logger)
-
-        # demonstrate override of default loglevel via env variable
-        loglevel=logging.INFO
-        if "OMNIPERF_LOGLEVEL" in os.environ.keys():
-            loglevel = os.environ['OMNIPERF_LOGLEVEL']
-            if loglevel in {"DEBUG","debug"}:
-                loglevel = logging.DEBUG
-            elif loglevel in {"TRACE","trace"}:
-                loglevel = logging.TRACE
-            elif loglevel in {"INFO","info"}:
-                loglevel = logging.INFO
-            elif loglevel in {"ERROR","error"}:
-                loglevel = logging.ERROR
-            else:
-                print("Ignoring unsupported OMNIPERF_LOGLEVEL setting (%s)" % loglevel)
-                sys.exit(1)
-
-        logging.basicConfig(format="%(message)s", level=loglevel, stream=sys.stdout)
+        print(ascii_art)
 
     def get_mode(self):
         return self.__mode
@@ -121,8 +96,7 @@ class Omniperf:
     def detect_profiler(self):
         if self.__args.lucky == True or self.__args.summaries == True or self.__args.use_rocscope:
             if not shutil.which("rocscope"):
-                logging.error("Rocscope must be in PATH")
-                sys.exit(1)
+                console_error("Rocscope must be in PATH")
             else:
                 self.__profiler_mode = "rocscope"
         else:
@@ -132,7 +106,7 @@ class Omniperf:
             elif str(rocprof_cmd).endswith("rocprofv2"):
                 self.__profiler_mode = "rocprofv2"
             else:
-                error("Incompatible profiler: %s. Supported profilers include: %s" % (rocprof_cmd, get_submodules('omniperf_profile')))
+                console_error("Incompatible profiler: %s. Supported profilers include: %s" % (rocprof_cmd, get_submodules('omniperf_profile')))
 
 
         return
@@ -160,7 +134,7 @@ class Omniperf:
         # instantiate underlying SoC support class
         # in case of analyze mode, __soc can accommodate multiple archs
         if arch not in self.__supported_archs.keys():
-            error("%s is an unsupported SoC" % arch)
+            console_error("%s is an unsupported SoC" % arch)
         else:
             self.__soc_name.add(target)
             if hasattr(self.__args, 'target'):
@@ -170,7 +144,7 @@ class Omniperf:
             soc_class = getattr(soc_module, arch+'_soc')
             self.__soc[arch] = soc_class(self.__args)
 
-        logging.info("SoC = %s" % self.__soc_name)
+        console_log("SoC = %s" % self.__soc_name)
         return arch
 
     @demarcate
@@ -191,8 +165,7 @@ class Omniperf:
             sys.exit(0)
         if self.__args.mode == None:
             parser.print_help(sys.stderr)
-            error("Omniperf requires a valid mode.")
-
+            console_error("Omniperf requires you pass a valid mode. Detected None.")
         return
 
     @demarcate
@@ -204,7 +177,9 @@ class Omniperf:
         if self.__args.path == os.path.join(os.getcwd(), "workloads"):
             self.__args.path = os.path.join(self.__args.path, self.__args.name, self.__args.target)
 
-        logging.info("Profiler choice = %s" % self.__profiler_mode)
+        console_log( 
+            "Profiler choice = %s" % self.__profiler_mode
+        )
 
         # instantiate desired profiler
         if self.__profiler_mode == "rocprofv1":
@@ -217,8 +192,7 @@ class Omniperf:
             from omniperf_profile.profiler_rocscope import rocscope_profiler
             profiler = rocscope_profiler(self.__args, self.__profiler_mode, self.__soc[targ_arch])
         else:
-            logging.error("Unsupported profiler")
-            sys.exit(1)
+            console_error("Unsupported profiler")
 
         #-----------------------
         # run profiling workflow
@@ -252,7 +226,9 @@ class Omniperf:
     def run_analysis(self):
         self.print_graphic()
 
-        logging.info("Analysis mode = %s" % self.__analyze_mode)
+        console_log(
+            "Analysis mode = %s" % self.__analyze_mode
+        )
 
         if self.__analyze_mode == "cli":
             from omniperf_analyze.analysis_cli import cli_analysis
@@ -261,7 +237,7 @@ class Omniperf:
             from omniperf_analyze.analysis_webui import webui_analysis
             analyzer = webui_analysis(self.__args, self.__supported_archs)
         else:
-            error("Unsupported anlaysis mode -> %s" % self.__analyze_mode)
+            console_error("Unsupported anlaysis mode -> %s" % self.__analyze_mode)
 
         #-----------------------
         # run analysis workflow

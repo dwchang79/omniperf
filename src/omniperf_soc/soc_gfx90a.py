@@ -25,9 +25,8 @@
 import os
 import config
 from omniperf_soc.soc_base import OmniSoC_Base
-from utils.utils import demarcate, mibench
+from utils.utils import demarcate, mibench, console_log
 from roofline import Roofline
-import logging
 
 SOC_PARAM = {
     "numSE": 8,
@@ -86,13 +85,20 @@ class gfx90a_soc (OmniSoC_Base):
         """Perform any SoC-specific post profiling activities.
         """
         super().post_profiling()
+        
         if not self.get_args().no_roof:
-            logging.info("[roofline] Checking for roofline.csv in " + str(self.get_args().path))
+            console_log(
+                "roofline",
+                "Checking for roofline.csv in " + str(self.get_args().path)
+            )
             if not os.path.isfile(os.path.join(self.get_args().path, "roofline.csv")):
                 mibench(self.get_args())
             self.roofline_obj.post_processing()
         else:
-            logging.info("[roofline] Skipping roofline")
+            console_log(
+                "roofline",
+                "Skipping roofline"
+            )
 
 
     @demarcate
