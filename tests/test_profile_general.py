@@ -21,6 +21,7 @@ config["kernel_name_1"] = "vecCopy(double*, double*, double*, int, int) [clone .
 config["app_1"] = ["./tests/vcopy", "-n", "1048576", "-b", "256", "-i", "3"]
 config["cleanup"] = True
 config["COUNTER_LOGGING"] = False
+config["METRIC_COMPARE"] = False
 config["METRIC_LOGGING"] = False
 
 baseline_opts = ["omniperf", "profile", "-n", "app_1", "-VVV"]
@@ -29,11 +30,12 @@ baseline_opts = ["omniperf", "profile", "-n", "app_1", "-VVV"]
 # app_1 = ["./sample/vcopy", "-n", "1048576", "-b", "256", "-i", "3"]
 
 num_kernels = 3
+num_devices = 4
 dispatch_id = 0
 
-DEFAULT_ABS_DIFF = 2.2
-DEFAULT_REL_DIFF = 8
-MAX_METRIC_VIOLATIONS = 2
+DEFAULT_ABS_DIFF = 15
+DEFAULT_REL_DIFF = 50
+MAX_REOCCURING_COUNT = 28
 
 ALL_CSVS = [
     "SQ_IFETCH_LEVEL.csv",
@@ -91,8 +93,8 @@ ALL_CSVS_MI200 = [
     "timestamps.csv",
 ]
 ROOF_ONLY_FILES = [
-    "empirRoof_gpu-ALL_fp32.pdf",
-    "empirRoof_gpu-ALL_int8_fp16.pdf",
+    "empirRoof_gpu-0_fp32.pdf",
+    "empirRoof_gpu-0_int8_fp16.pdf",
     "pmc_perf.csv",
     "pmc_perf_0.csv",
     "pmc_perf_1.csv",
@@ -102,68 +104,80 @@ ROOF_ONLY_FILES = [
     "timestamps.csv",
 ]
 
-# logging function for threshold outliers set to false
-COUNTER_LOGGING = False
-METRIC_LOGGING = False
-
-# Absolute Difference < 2
-CONSISTENT_ABS_METRIC_INDICES = [
-    "2.1.8",
-    # "2.1.28",
-    "2.1.9",
-    "5.1.3",
-    "13.1.0",
-    "14.1.0",
-    "5.2.4",
-    "11.2.0",
-    "11.2.2",
-    "11.2.3",
-    "13.1.0",
-    "13.2.3",
-    "16.5.3",
-    "17.2.3",
-    "17.2.8",
-    "17.2.9",
-    "17.3.8",
-    "17.3.9",
-    "17.3.11",
-    "17.3.14",
-    "17.3.15",
-    "17.3.16",
-    "18.1.13",
-    "18.1.16",
-]
-# Percent Difference < 8
-CONSISTENT_REL_METRIC_INDICES = [
-    "2.1.26",
-    # "5.1.0",
-    # "5.1.1",
-    # "5.2.0",
-    # "5.2.1",
-    "5.2.3",
-    # "5.2.4",
-    "5.2.6",
-    "5.2.8",
-    # "6.1.0",
-    # "6.1.1",
-    "6.1.3" "6.1.6",
-    # "6.1.7",
-    # "6.2.0",
-    # "7.2.1",
-    # "7.2.3",
-    "7.2.4",
-    "7.2.7",
-    # "14.1.0",
-    "16.2.0",
-    # "16.3.14",
-    # "16.3.15",
-    "17.1.0",
-]
+# Must not change relative difference is zero
+METRIC_THRESHOLDS = {
+    "2.1.12": {"absolute": 0, "relative": 1},
+    "2.1.15": {"absolute": 0, "relative": 1},
+    "2.1.19": {"absolute": 0, "relative": 1},
+    "5.1.0": {"absolute": 0, "relative": 15},
+    "5.2.0": {"absolute": 0, "relative": 15},
+    "6.1.5": {"absolute": 0, "relative": 1},
+    "6.1.0": {"absolute": 0, "relative": 15},
+    # "6.1.3" : {"absolute": 0, "relative": 5},
+    "6.1.3": {"absolute": 0, "relative": 11},
+    "6.2.12": {"absolute": 0, "relative": 1},
+    "6.2.13": {"absolute": 0, "relative": 1},
+    "7.1.0": {"absolute": 0, "relative": 1},
+    "7.1.1": {"absolute": 0, "relative": 1},
+    "7.1.2": {"absolute": 0, "relative": 1},
+    "7.1.5": {"absolute": 0, "relative": 1},
+    "7.1.6": {"absolute": 0, "relative": 1},
+    "7.1.7": {"absolute": 0, "relative": 1},
+    "7.2.0": {"absolute": 0, "relative": 5},
+    "7.2.1": {"absolute": 0, "relative": 10},
+    "7.2.6": {"absolute": 0, "relative": 1},
+    "10.1.4": {"absolute": 0, "relative": 1},
+    "10.1.5": {"absolute": 0, "relative": 1},
+    "10.1.6": {"absolute": 0, "relative": 1},
+    "10.1.7": {"absolute": 0, "relative": 1},
+    "10.3.4": {"absolute": 0, "relative": 1},
+    "10.3.5": {"absolute": 0, "relative": 1},
+    "10.3.6": {"absolute": 0, "relative": 1},
+    "11.2.1": {"absolute": 0, "relative": 1},
+    "11.2.4": {"absolute": 0, "relative": 1},
+    "13.2.0": {"absolute": 0, "relative": 1},
+    "13.2.2": {"absolute": 0, "relative": 1},
+    "14.2.0": {"absolute": 0, "relative": 1},
+    "14.2.5": {"absolute": 0, "relative": 1},
+    "14.2.7": {"absolute": 0, "relative": 1},
+    "14.2.8": {"absolute": 0, "relative": 1},
+    "15.1.4": {"absolute": 0, "relative": 1},
+    "15.1.5": {"absolute": 0, "relative": 1},
+    "15.1.6": {"absolute": 0, "relative": 1},
+    "15.1.7": {"absolute": 0, "relative": 1},
+    "15.2.4": {"absolute": 0, "relative": 1},
+    "15.2.5": {"absolute": 0, "relative": 1},
+    "16.1.0": {"absolute": 0, "relative": 1},
+    "16.1.3": {"absolute": 0, "relative": 1},
+    "16.3.0": {"absolute": 0, "relative": 1},
+    "16.3.1": {"absolute": 0, "relative": 1},
+    "16.3.2": {"absolute": 0, "relative": 1},
+    "16.3.5": {"absolute": 0, "relative": 1},
+    "16.3.6": {"absolute": 0, "relative": 1},
+    "16.3.7": {"absolute": 0, "relative": 1},
+    "16.3.9": {"absolute": 0, "relative": 1},
+    "16.3.10": {"absolute": 0, "relative": 1},
+    "16.3.11": {"absolute": 0, "relative": 1},
+    "16.4.3": {"absolute": 0, "relative": 1},
+    "16.4.4": {"absolute": 0, "relative": 1},
+    "16.5.0": {"absolute": 0, "relative": 1},
+    "17.3.3": {"absolute": 0, "relative": 1},
+    "17.3.6": {"absolute": 0, "relative": 1},
+    "17.3.13": {"absolute": 0, "relative": 1},
+    "18.1.0": {"absolute": 0, "relative": 1},
+    "18.1.1": {"absolute": 0, "relative": 1},
+    "18.1.2": {"absolute": 0, "relative": 1},
+    "18.1.3": {"absolute": 0, "relative": 1},
+    "5.1.2": {"absolute": 0, "relative": 1},
+    "6.1.4": {"absolute": 0, "relative": 1},
+    "18.1.5": {"absolute": 0, "relative": 1},
+    "18.1.6": {"absolute": 1, "relative": 0},
+}
 # check for parallel resource allocation
 test_utils.check_resource_allocation()
 
 
-def metric_compare(test_name, errors_pd, baseline_df, run_df, threshold=5):
+def counter_compare(test_name, errors_pd, baseline_df, run_df, threshold=5):
     # iterate data one row at a time
     for idx_1 in run_df.index:
         run_row = run_df.iloc[idx_1]
@@ -256,27 +270,7 @@ def gpu_soc():
 
 soc = gpu_soc()
 
-if config["METRIC_LOGGING"]:
-    # change to directory where baseline is at
-    Baseline_dir = os.path.realpath("Baseline_vcopy_" + soc)
-    if os.path.exists(Baseline_dir):
-        shutil.rmtree(Baseline_dir)
-    with pytest.raises(SystemExit) as e:
-        with patch(
-            "sys.argv",
-            [
-                "omniperf",
-                "profile",
-                "-n",
-                "app_1",
-                "-VVV",
-                "--path",
-                Baseline_dir,
-                "--",
-            ]
-            + app_1,
-        ):
-            omniperf.main()
+Baseline_dir = os.path.realpath("tests/workloads/Baseline_vcopy_" + soc)
 
 
 def log_counter(file_dict, test_name):
@@ -287,7 +281,7 @@ def log_counter(file_dict, test_name):
             # get corresponding file from current test run
             df_2 = file_dict[file]
 
-            errors = metric_compare(test_name, pd.DataFrame(), df_1, df_2, 5)
+            errors = counter_compare(test_name, pd.DataFrame(), df_1, df_2, 5)
             if not errors.empty:
                 if os.path.exists(
                     Baseline_dir + "/" + file.split(".")[0] + "_error_log.csv"
@@ -312,7 +306,7 @@ def log_counter(file_dict, test_name):
                     )
 
 
-def log_metric(test_name, thresholds, args=[]):
+def baseline_compare_metric(test_name, workload_dir, args=[]):
     t = subprocess.Popen(
         [
             sys.executable,
@@ -322,7 +316,7 @@ def log_metric(test_name, thresholds, args=[]):
             Baseline_dir,
         ]
         + args
-        + ["--path", workload_dir, "--report-diff", str(DEFAULT_REL_DIFF)],
+        + ["--path", workload_dir, "--report-diff", "-1"],
         stdout=subprocess.PIPE,
     )
     captured_output = t.communicate(timeout=1300)[0].decode("utf-8")
@@ -348,45 +342,91 @@ def log_metric(test_name, thresholds, args=[]):
             if len(metric_info):
                 metric_info = metric_info[0]
                 metric_idx = metric_info[0]
-                table_idx = metric_info[0].split(".")[0]
+                metric_name = metric_info[1].strip()
+                baseline_val = metric_info[-3]
+                current_val = metric_info[-4]
                 relative_diff = float(metric_info[-2])
                 absolute_diff = float(metric_info[-1])
-                if relative_diff > -99 or relative_diff < -101:
-                    relative_threshold = thresholds["default"]["relative"]
-                    absolute_threshold = thresholds["default"]["absolute"]
+                if relative_diff > -99:
+                    if metric_idx in METRIC_THRESHOLDS.keys():
+                        # print(metric_idx+" is in FIXED_METRICS")
+                        threshold_type = (
+                            "absolute"
+                            if METRIC_THRESHOLDS[metric_idx]["absolute"]
+                            > METRIC_THRESHOLDS[metric_idx]["relative"]
+                            else "relative"
+                        )
 
-                    if table_idx in thresholds:
-                        relative_threshold = thresholds[table_idx]["relative"]
-                        absolute_threshold = thresholds[table_idx]["absolute"]
-                    if (
-                        abs(relative_diff) > relative_threshold
-                        and (metric_idx in CONSISTENT_REL_METRIC_INDICES)
-                    ) or (
-                        abs(absolute_diff) > absolute_threshold
-                        and (metric_idx in CONSISTENT_ABS_METRIC_INDICES)
+                        isValid = (
+                            (abs(absolute_diff) <= METRIC_THRESHOLDS[metric_idx]["absolute"])
+                            if (threshold_type == "absolute")
+                            else (
+                                abs(relative_diff)
+                                <= METRIC_THRESHOLDS[metric_idx]["relative"]
+                            )
+                        )
+                        if not isValid:
+                            print(
+                                "index "
+                                + metric_idx
+                                + " "
+                                + threshold_type
+                                + " difference is supposed to be "
+                                + str(METRIC_THRESHOLDS[metric_idx][threshold_type])
+                                + ", absolute diff:",
+                                absolute_diff,
+                                "relative diff: ",
+                                relative_diff,
+                            )
+                            assert 0
+                        continue
+
+                    # Used for debugging metric lists
+                    if config["METRIC_LOGGING"] and (
+                        (
+                            abs(relative_diff) <= abs(DEFAULT_REL_DIFF)
+                            or (abs(absolute_diff) <= abs(DEFAULT_ABS_DIFF))
+                        )
+                        and (False if baseline_val == "" else float(baseline_val) > 0)
                     ):
+                        # print("logging...")
+                        # print(metric_info)
+
                         new_error = pd.DataFrame.from_dict(
                             {
-                                "Index": [metric_info[0]],
-                                "Metric": [metric_info[1].strip()],
+                                "Index": [metric_idx],
+                                "Metric": [metric_name],
                                 "Percent Difference": [relative_diff],
                                 "Absolute Difference": [absolute_diff],
-                                "Baseline": [metric_info[-3]],
-                                "Current": [metric_info[-4]],
+                                "Baseline": [baseline_val],
+                                "Current": [current_val],
                                 "Test Name": [test_name],
                             }
                         )
                         error_df = pd.concat([error_df, new_error])
-                        counts = error_df.groupby("Index").cumcount()
-                        failed_metrics = error_df.loc[counts > MAX_METRIC_VIOLATIONS]
-                        if failed_metrics.any(axis=None):
+                        counts = error_df.groupby(["Index"]).cumcount()
+                        reoccurring_metrics = error_df.loc[counts > MAX_REOCCURING_COUNT]
+                        reoccurring_metrics["counts"] = counts[
+                            counts > MAX_REOCCURING_COUNT
+                        ]
+                        if reoccurring_metrics.any(axis=None):
                             print(
-                                "Warning, these metrics are varying too much",
-                                failed_metrics,
+                                "These metrics appear alot\n",
+                                reoccurring_metrics,
                             )
+                            print(list(reoccurring_metrics["Index"]))
 
-        if not error_df.empty:
-            error_df.to_csv(Baseline_dir + "/metric_error_log.csv")
+                        # log into csv
+                        if not error_df.empty:
+                            error_df.to_csv(Baseline_dir + "/metric_error_log.csv")
+
+
+def validate(test_name, workload_dir, file_dict, args=[]):
+    if config["COUNTER_LOGGING"]:
+        log_counter(file_dict, test_name)
+
+    if config["METRIC_COMPARE"]:
+        baseline_compare_metric(test_name, workload_dir, args)
 
 
 # --
@@ -400,20 +440,13 @@ def test_path():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(inspect.stack()[0][3], workload_dir, file_dict)
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -424,7 +457,7 @@ def test_no_roof():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == [
             "SQ_IFETCH_LEVEL.csv",
@@ -456,14 +489,11 @@ def test_no_roof():
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -482,11 +512,12 @@ def test_kernel_names():
     # assert successful run
     assert e.value.code == 0
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == [
-            "empirRoof_gpu-ALL_fp32.pdf",
-            "empirRoof_gpu-ALL_int8_fp16.pdf",
+            "empirRoof_gpu-0_fp32.pdf",
+            "empirRoof_gpu-0_int8_fp16.pdf",
             "kernelName_legend.pdf",
             "pmc_perf.csv",
             "pmc_perf_0.csv",
@@ -499,14 +530,11 @@ def test_kernel_names():
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -521,7 +549,7 @@ def test_device_filter():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, 1, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
@@ -529,16 +557,13 @@ def test_device_filter():
 
     # TODO - verify expected device id in results
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
-
-    test_utils.clean_output_dir(config["cleanup"], workload_dir)
+    # test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
 
 @pytest.mark.kernel_execution
@@ -547,20 +572,17 @@ def test_kernel():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -571,20 +593,17 @@ def test_kernel_summaries():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -595,7 +614,7 @@ def test_ipblocks_SQ():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "SQ_IFETCH_LEVEL.csv",
         "SQ_INST_LEVEL_LDS.csv",
@@ -643,14 +662,12 @@ def test_ipblocks_SQ():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
 
@@ -660,7 +677,7 @@ def test_ipblocks_SQC():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -675,14 +692,11 @@ def test_ipblocks_SQC():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -693,7 +707,7 @@ def test_ipblocks_TA():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -712,14 +726,11 @@ def test_ipblocks_TA():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -730,7 +741,7 @@ def test_ipblocks_TD():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -753,14 +764,11 @@ def test_ipblocks_TD():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -771,7 +779,7 @@ def test_ipblocks_TCP():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -792,14 +800,11 @@ def test_ipblocks_TCP():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -810,7 +815,7 @@ def test_ipblocks_TCC():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -832,14 +837,11 @@ def test_ipblocks_TCC():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -850,7 +852,7 @@ def test_ipblocks_SPI():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -870,14 +872,11 @@ def test_ipblocks_SPI():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -888,7 +887,7 @@ def test_ipblocks_CPC():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -904,14 +903,7 @@ def test_ipblocks_CPC():
         expected_csvs.insert(7, "roofline.csv")
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(inspect.stack()[0][3], workload_dir, file_dict)
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -922,7 +914,7 @@ def test_ipblocks_CPF():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "pmc_perf.csv",
         "pmc_perf_0.csv",
@@ -936,14 +928,11 @@ def test_ipblocks_CPF():
         expected_csvs.insert(5, "roofline.csv")
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -954,7 +943,7 @@ def test_ipblocks_SQ_CPC():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "SQ_IFETCH_LEVEL.csv",
         "SQ_INST_LEVEL_LDS.csv",
@@ -1002,14 +991,11 @@ def test_ipblocks_SQ_CPC():
 
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1020,7 +1006,7 @@ def test_ipblocks_SQ_TA():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "SQ_IFETCH_LEVEL.csv",
         "SQ_INST_LEVEL_LDS.csv",
@@ -1067,14 +1053,7 @@ def test_ipblocks_SQ_TA():
         ]
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(inspect.stack()[0][3], workload_dir, file_dict)
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1085,7 +1064,7 @@ def test_ipblocks_SQ_SPI():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "SQ_IFETCH_LEVEL.csv",
         "SQ_INST_LEVEL_LDS.csv",
@@ -1132,15 +1111,11 @@ def test_ipblocks_SQ_SPI():
         ]
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
-
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
 
@@ -1150,7 +1125,7 @@ def test_ipblocks_SQ_SQC_TCP_CPC():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "SQ_IFETCH_LEVEL.csv",
         "SQ_INST_LEVEL_LDS.csv",
@@ -1198,14 +1173,7 @@ def test_ipblocks_SQ_SQC_TCP_CPC():
         ]
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(inspect.stack()[0][3], workload_dir, file_dict)
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1216,7 +1184,7 @@ def test_ipblocks_SQ_SPI_TA_TCC_CPF():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     expected_csvs = [
         "SQ_IFETCH_LEVEL.csv",
         "SQ_INST_LEVEL_LDS.csv",
@@ -1265,14 +1233,11 @@ def test_ipblocks_SQ_SPI_TA_TCC_CPF():
         ]
     assert sorted(list(file_dict.keys())) == expected_csvs
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1283,24 +1248,21 @@ def test_dispatch_0():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, 1)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, 1)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-            [
-                "--dispatch",
-                "0",
-            ],
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+        [
+            "--dispatch",
+            "0",
+        ],
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1311,21 +1273,18 @@ def test_dispatch_0_1():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, 2)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, 2)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-            ["--dispatch", "0", "1"],
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+        ["--dispatch", "0", "1"],
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1336,24 +1295,21 @@ def test_dispatch_2():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, 1)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, 1)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-            [
-                "--dispatch",
-                str(dispatch_id),
-            ],
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+        [
+            "--dispatch",
+            str(dispatch_id),
+        ],
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1364,22 +1320,19 @@ def test_kernel_verbose_0():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
-
-    test_utils.clean_output_dir(config["cleanup"], workload_dir)
+    # test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
 
 @pytest.mark.verbosity
@@ -1388,20 +1341,17 @@ def test_kernel_verbose_1():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1412,20 +1362,17 @@ def test_kernel_verbose_2():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1436,20 +1383,17 @@ def test_kernel_verbose_3():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1460,20 +1404,17 @@ def test_kernel_verbose_4():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1484,20 +1425,17 @@ def test_kernel_verbose_5():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1508,20 +1446,17 @@ def test_join_type_grid():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1532,21 +1467,18 @@ def test_join_type_kernel():
     workload_dir = test_utils.get_output_dir()
     test_utils.launch_omniperf(config, options, workload_dir)
 
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ALL_CSVS_MI200
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1566,19 +1498,18 @@ def test_sort_dispatches():
     # assert successful run
     assert e.value.code == 0
 
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
+
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1597,21 +1528,18 @@ def test_sort_kernels():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1630,21 +1558,19 @@ def test_mem_levels_HBM():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1663,21 +1589,19 @@ def test_mem_levels_L2():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1696,21 +1620,19 @@ def test_mem_levels_vL1D():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1729,21 +1651,19 @@ def test_mem_levels_LDS():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1762,21 +1682,19 @@ def test_mem_levels_HBM_LDS():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1795,21 +1713,19 @@ def test_mem_levels_vL1D_LDS():
 
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)
 
@@ -1827,20 +1743,18 @@ def test_mem_levels_L2_vL1D_LDS():
         return
     # assert successful run
     assert e.value.code == 0
-    file_dict = test_utils.check_csv_files(workload_dir, num_kernels)
+    file_dict = test_utils.check_csv_files(workload_dir, num_devices, num_kernels)
 
     if soc == "mi200":
+        print(sorted(list(file_dict.keys())))
         assert sorted(list(file_dict.keys())) == ROOF_ONLY_FILES
     else:
         assert sorted(list(file_dict.keys())) == ALL_CSVS
 
-    if config["COUNTER_LOGGING"]:
-        log_counter(file_dict, inspect.stack()[0][3])
-
-    if config["METRIC_LOGGING"]:
-        log_metric(
-            inspect.stack()[0][3],
-            {"default": {"absolute": DEFAULT_ABS_DIFF, "relative": DEFAULT_REL_DIFF}},
-        )
+    validate(
+        inspect.stack()[0][3],
+        workload_dir,
+        file_dict,
+    )
 
     test_utils.clean_output_dir(config["cleanup"], workload_dir)

@@ -155,7 +155,7 @@ class OmniProfiler_Base():
                 k
                 for k in df.keys()
                 if not any(
-                    check in k
+                    k.startswith(check)
                     for check in [
                        # rocprofv2 headers
                         "GPU_ID_",
@@ -366,7 +366,6 @@ class OmniProfiler_Base():
             "profiling",
             "performing post-processing using %s profiler" % self.__profiler
         )
-
         gen_sysinfo(
             workload_name=self.__args.name, 
             workload_dir=self.get_args().path, 

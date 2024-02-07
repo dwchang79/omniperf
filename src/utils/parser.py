@@ -115,6 +115,11 @@ def to_min(*args):
 def to_max(*args):
     if len(args) == 1 and isinstance(args[0], pd.core.series.Series):
         return args[0].max()
+    elif len(args) == 2 and (
+        isinstance(args[0], pd.core.series.Series)
+        or isinstance(args[1], pd.core.series.Series)
+    ):
+        return np.maximum(args[0], args[1])
     elif max(args) == None:
         return np.nan
     else:
@@ -302,7 +307,7 @@ def build_eval_string(equation, coll_level):
 
 def update_denom_string(equation, unit):
     """
-    Update $denom in equation with runtime nomorlization unit.
+    Update $denom in equation with runtime normalization unit.
     """
     if not equation:
         return ""
@@ -317,7 +322,7 @@ def update_denom_string(equation, unit):
 
 def update_normUnit_string(equation, unit):
     """
-    Update $normUnit in equation with runtime nomorlization unit.
+    Update $normUnit in equation with runtime normalization unit.
     It is string replacement for display only.
     """
 
@@ -326,8 +331,8 @@ def update_normUnit_string(equation, unit):
         return ""
 
     return re.sub(
-        "\((?P<PREFIX>\w*)\s+\+\s+(\$normUnit\))",
-        "\g<PREFIX> " + re.sub("_", " ", unit),
+        r"\((?P<PREFIX>\w*)\s+\+\s+(\$normUnit\))",
+        r"\g<PREFIX> " + re.sub("_", " ", unit),
         str(equation),
     ).capitalize()
 
@@ -490,7 +495,7 @@ def build_dfs(archConfigs, filter_metrics, sys_info):
         for data_source in panel["data source"]:
             for type, data_config in data_source.items():
                 if type == "metric_table":
-                    headers = ["Dispatch_ID"]
+                    headers = ["Metric_ID"]
                     data_source_idx = str(data_config["id"] // 100)
                     if (data_source_idx != 0 or
                         data_source_idx in filter_metrics
@@ -604,7 +609,7 @@ def build_dfs(archConfigs, filter_metrics, sys_info):
 
                         i += 1
 
-                    df.set_index("Dispatch_ID", inplace=True)
+                    df.set_index("Metric_ID", inplace=True)
                     # df.set_index('Metric', inplace=True)
                     # print(tabulate(df, headers='keys', tablefmt='fancy_grid'))
                 elif type == "raw_csv_table":
@@ -688,9 +693,10 @@ def eval_metric(dfs, dfs_type, sys_info, soc_spec, raw_pmc_df, debug):
     # NB:
     #  Following with Omniperf 0.2.0, we are using HW spec from sys_info instead.
     #  The soc_spec is not in using right now, but can be used to do verification
-    #  aganist sys_info, forced theoretical evaluation, or supporting tool-chains
+    #  against sys_info, forced theoretical evaluation, or supporting tool-chains
     #  broken.
     ammolite__numSE = sys_info.numSE
+    ammolite__numPipes = sys_info.numPipes
     ammolite__numCU = sys_info.numCU
     ammolite__numSIMD = sys_info.numSIMD
     ammolite__numWavesPerCU = sys_info.maxWavesPerCU  # todo: check do we still need it
@@ -737,7 +743,7 @@ def eval_metric(dfs, dfs_type, sys_info, soc_spec, raw_pmc_df, debug):
                                     print("~" * 40 + "\nExpression:")
                                     print(expr, "=", row[expr])
                                     print("Inputs:")
-                                    matched_vars = re.findall("ammolite__\w+", row[expr])
+                                    matched_vars = re.findall(r"ammolite__\w+", row[expr])
                                     if matched_vars:
                                         for v in matched_vars:
                                             print(
@@ -747,12 +753,12 @@ def eval_metric(dfs, dfs_type, sys_info, soc_spec, raw_pmc_df, debug):
                                                 eval(compile(v, "<string>", "eval")),
                                             )
                                     matched_cols = re.findall(
-                                        "raw_pmc_df\['\w+'\]\['\w+'\]", row[expr]
+                                        r"raw_pmc_df\['\w+'\]\['\w+'\]", row[expr]
                                     )
                                     if matched_cols:
                                         for c in matched_cols:
                                             m = re.match(
-                                                "raw_pmc_df\['(\w+)'\]\['(\w+)'\]", c
+                                                r"raw_pmc_df\['(\w+)'\]\['(\w+)'\]", c
                                             )
                                             t = raw_pmc_df[m.group(1)][
                                                 m.group(2)
@@ -776,7 +782,7 @@ def eval_metric(dfs, dfs_type, sys_info, soc_spec, raw_pmc_df, debug):
                                         print("~" * 40)
                                     except TypeError:
                                         print(
-                                            "skiping entry. Encounterd a missing counter"
+                                            "skipping entry. Encountered a missing counter"
                                         )
                                         print(expr, " has been assigned to None")
                                         print(np.nan)
@@ -786,7 +792,7 @@ def eval_metric(dfs, dfs_type, sys_info, soc_spec, raw_pmc_df, debug):
                                             == "'NoneType' object has no attribute 'get'"
                                         ):
                                             print(
-                                                "skiping entry. Encounterd a missing csv"
+                                                "skipping entry. Encountered a missing csv"
                                             )
                                             print(np.nan)
                                         else:
@@ -892,7 +898,7 @@ def apply_filters(workload, dir, is_gui, debug):
                 print("{} is an invalid dispatch id.".format(d))
                 sys.exit(1)
         if ">" in workload.filter_dispatch_ids[0]:
-            m = re.match("\> (\d+)", workload.filter_dispatch_ids[0])
+            m = re.match(r"\> (\d+)", workload.filter_dispatch_ids[0])
             ret_df = ret_df[
                 ret_df[schema.pmc_perf_file_prefix]["Dispatch_ID"] > int(m.group(1))
             ]
@@ -980,7 +986,7 @@ def correct_sys_info(df, specs_correction):
     # header += "command,"
     # header += "host_name,host_cpu,host_distro,host_kernel,host_rocmver,date,"
     # header += "gpu_soc,numSE,numCU,numSIMD,waveSize,maxWavesPerCU,maxWorkgroupSize,"
-    # header += "L1,L2,sclk,mclk,cur_sclk,cur_mclk,L2Banks,LDSBanks,name,numSQC,hbmBW,compute_partition,memory_partition,"
+    # header += "L1,L2,sclk,mclk,cur_sclk,cur_mclk,L2Banks,LDSBanks,name,numSQC,numPipes,hbmBW,compute_partition,memory_partition,"
     # header += "ip_blocks\n"
 
     name_map = {
@@ -1008,6 +1014,7 @@ def correct_sys_info(df, specs_correction):
         "L2Banks": "L2Banks",
         "LDSBanks": "LDSBanks",
         "numSQC": "numSQC",
+        "numPipes": "numPipes",
         "hbmBW": "hbmBW",
         "compute_partition": "compute_partition",
         "memory_partition": "memory_partition",

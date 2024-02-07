@@ -62,6 +62,7 @@ class MachineSpecs:
     L2Banks: str
     LDSBanks: str
     numSQC: str
+    numPipes: str
     hbmBW: str
     compute_partition: str
     memory_partition: str
@@ -95,6 +96,7 @@ class MachineSpecs:
             L2Banks:            {self.L2Banks}
             LDSBanks:           {self.LDSBanks}
             numSQC:             {self.numSQC}
+            numPipes:           {self.numPipes}
             hbmBW:              {self.hbmBW} MB/s
             compute_partition:  {self.compute_partition}
             memory_partition:   {self.memory_partition}
@@ -113,6 +115,7 @@ def gpuinfo():
         "max_sclk": None,
         "num_CU": None,
         "num_SIMD": None,
+        "numPipes": None,
         "num_SE": None,
         "wave_size": None,
         "grp_size": None,
@@ -196,6 +199,7 @@ def gpuinfo():
         gpu_info['L2Banks'] = str(soc_module.SOC_PARAM['L2Banks'])
         gpu_info['numSQC'] = str(soc_module.SOC_PARAM['numSQC'])
         gpu_info['LDSBanks'] = str(soc_module.SOC_PARAM['LDSBanks'])
+        gpu_info['numPipes'] = str(soc_module.SOC_PARAM['numPipes'])
     except KeyError as e:
         console_error("Incomplete class definition for %s. Expected a field for %s in SOC_PARAM." % (gpu_arch, e))\
     
@@ -221,10 +225,13 @@ def gpuinfo():
     return gpu_info
 
 
-def run(cmd):
+def run(cmd,exit_on_error=False):
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if cmd[0] == "rocm-smi" and p.returncode == 8:
-        console_error("No GPU detected. Unable to load rocm-smi")
+    if exit_on_error:
+        if cmd[0] == "rocm-smi" and p.returncode != 0:
+            console_error("No GPU detected. Unable to load rocm-smi")
+        elif p.returncode != 0:
+            console_error("Command [%s] failed with non-zero exit code" % cmd)
     return p.stdout.decode("utf-8")
 
 
@@ -276,7 +283,7 @@ def get_machine_specs(devicenum):
             console_error("Ensure you have valid ROCm installation.")
     gpu_info = gpuinfo()
 
-    rocm_smi = run(["rocm-smi"])
+    rocm_smi = run(["rocm-smi"], exit_on_error=True)
 
     device = rf"^\s*{devicenum}(.*)"
 
@@ -304,7 +311,7 @@ def get_machine_specs(devicenum):
         cur_mclk = 0
 
     # FIXME with device
-    vbios = search(r"VBIOS version: (.*?)$", run(["rocm-smi", "-v"]))
+    vbios = search(r"VBIOS version: (.*?)$", run(["rocm-smi", "-v"], exit_on_error=True))
 
     # FIXME with spec
     hbmBW = str(int(cur_mclk) / 1000 * 4096 / 8 * 2)
@@ -346,6 +353,7 @@ def get_machine_specs(devicenum):
         gpu_info['L2Banks'],
         gpu_info['LDSBanks'],
         gpu_info['numSQC'],
+        gpu_info['numPipes'],
         hbmBW,
         compute_partition,
         memory_partition,
