@@ -80,7 +80,7 @@ def omniarg_parser(parser, omniperf_home, supported_archs, omniperf_version):
 
     general_group.add_argument("-v", "--version", action="version", version=omniperf_version["ver_pretty"])
     general_group.add_argument(
-        "-V", "--verbose", help="Increase output verbosity", action="count", default=0
+        "-V", "--verbose", help="Increase output verbosity (use multiple times for higher levels)", action="count", default=0
     )
 
     profile_group.add_argument(
@@ -285,7 +285,7 @@ def omniarg_parser(parser, omniperf_home, supported_archs, omniperf_version):
 
     general_group.add_argument("-v", "--version", action="version", version=omniperf_version["ver_pretty"])
     general_group.add_argument(
-        "-V", "--verbose", help="Increase output verbosity", action="count", default=0
+        "-V", "--verbose", help="Increase output verbosity (use multiple times for higher levels)", action="count", default=0
     )
     general_group.add_argument("-s", "--specs", action="store_true", help="Print system specs.")
 
@@ -376,7 +376,7 @@ def omniarg_parser(parser, omniperf_home, supported_archs, omniperf_version):
 
     general_group.add_argument("-v", "--version", action="version", version=omniperf_version["ver_pretty"])
     general_group.add_argument(
-        "-V", "--verbose", help="Increase output verbosity", action="count", default=0
+        "-V", "--verbose", help="Increase output verbosity (use multiple times for higher levels)", action="count", default=0
     )
     general_group.add_argument("-s", "--specs", action="store_true", help="Print system specs.")
 

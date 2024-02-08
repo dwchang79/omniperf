@@ -58,9 +58,9 @@ class Omniperf:
         self.__options = {}
         self.__supported_archs = SUPPORTED_ARCHS
 
-        setup_logging()
         self.set_version()
         self.parse_args()
+        setup_logging(self.__args.verbose)
 
         self.__mode = self.__args.mode
 
@@ -93,6 +93,7 @@ class Omniperf:
         self.__version["ver_pretty"] = get_version_display(vData["version"], vData["sha"], vData["mode"])
         return
     
+    @demarcate
     def detect_profiler(self):
         if self.__args.lucky == True or self.__args.summaries == True or self.__args.use_rocscope:
             if not shutil.which("rocscope"):
@@ -107,9 +108,9 @@ class Omniperf:
                 self.__profiler_mode = "rocprofv2"
             else:
                 console_error("Incompatible profiler: %s. Supported profilers include: %s" % (rocprof_cmd, get_submodules('omniperf_profile')))
-
-
         return
+    
+    @demarcate
     def detect_analyze(self):
         if self.__args.gui:
             self.__analyze_mode = "web_ui"
@@ -147,7 +148,6 @@ class Omniperf:
         console_log("SoC = %s" % self.__soc_name)
         return arch
 
-    @demarcate
     def parse_args(self):
         parser = argparse.ArgumentParser(
                 description="Command line interface for AMD's GPU profiler, Omniperf",
